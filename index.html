@@ -69,8 +69,9 @@ button{
   <div class="hint" id="hint"></div>
 </div>
 
+<!-- ================= FIREBASE + LOGIC ================= -->
 <script type="module">
-/* ================== CONFIG ================== */
+/* ====== CONFIG ====== */
 const VUOTNHANH_API = "ff60b470-d49a-4c0c-89e2-968102e9efab";
 const RETURN_URL = "https://wuselaina-007.github.io/getkey/?passed=1";
 
@@ -87,7 +88,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ================== FUNCTIONS ================== */
+/* ====== FUNCTIONS ====== */
 function genKey(){
   return "HK-" + crypto.randomUUID().replace(/-/g,"").toUpperCase();
 }
@@ -101,42 +102,36 @@ async function saveKey(key){
   });
 }
 
-/* ================== VUOTNHANH API ================== */
-window.goVuot = async () => {
-  try{
-    const apiUrl =
-      "https://vuotnhanh.com/api"
-      + "?api=" + encodeURIComponent(VUOTNHANH_API)
-      + "&url=" + encodeURIComponent(RETURN_URL);
+/* ====== VUOTNHANH (NO FETCH – NO CORS) ====== */
+window.goVuot = () => {
+  const url =
+    "https://vuotnhanh.com/api"
+    + "?api=" + encodeURIComponent(VUOTNHANH_API)
+    + "&url=" + encodeURIComponent(RETURN_URL)
+    + "&format=text";
 
-    const res = await fetch(apiUrl);
-    const text = await res.text();
-
-    // TEXT response
-    if(text.startsWith("http")){
-      location.href = text.trim();
-      return;
-    }
-
-    // JSON response
-    const data = JSON.parse(text);
-    if(data.status === "success"){
-      location.href = data.shortenedUrl;
-    }else{
-      alert("VuotNhanh error: " + data.message);
-    }
-  }catch(e){
-    alert("Lỗi gọi VuotNhanh API");
-    console.error(e);
-  }
+  // redirect thẳng → browser xử lý
+  location.href = url;
 };
 
-/* ================== CALLBACK ================== */
+/* ====== CALLBACK AFTER PASS ====== */
 const params = new URLSearchParams(location.search);
-if(params.get("passed")==="1"){
+if(params.get("passed") === "1"){
   const key = genKey();
   await saveKey(key);
 
+  const box = document.getElementById("keyBox");
+  box.style.display = "block";
+  box.textContent = key;
+
+  document.getElementById("hint").textContent =
+    "Key đã copy – dán vào tool để login";
+
+  navigator.clipboard.writeText(key);
+}
+</script>
+</body>
+</html>
   const box = document.getElementById("keyBox");
   box.style.display="block";
   box.textContent=key;
