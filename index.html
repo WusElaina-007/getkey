@@ -1,682 +1,157 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GetKey Panel</title>
-  <style>
-    :root{
-      --bg0:#070812;
-      --bg1:#0a1026;
-      --card:rgba(255,255,255,.06);
-      --card2:rgba(255,255,255,.08);
-      --text:#e9ecff;
-      --muted:rgba(233,236,255,.70);
-      --line:rgba(255,255,255,.12);
-      --acc:#7c5cff;
-      --acc2:#2be7c5;
-      --bad:#ff4d6d;
-      --ok:#2be7c5;
-      --shadow: 0 18px 60px rgba(0,0,0,.45);
-      --radius: 18px;
-    }
-
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      color:var(--text);
-      background:
-        radial-gradient(1000px 600px at 20% 10%, rgba(124,92,255,.25), transparent 60%),
-        radial-gradient(800px 500px at 80% 30%, rgba(43,231,197,.18), transparent 55%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
-      overflow-x:hidden;
-    }
-
-    /* subtle moving glow */
-    .glow{
-      position:fixed; inset:-200px;
-      pointer-events:none;
-      background:
-        radial-gradient(500px 400px at 30% 20%, rgba(124,92,255,.18), transparent 60%),
-        radial-gradient(600px 500px at 70% 35%, rgba(43,231,197,.12), transparent 60%),
-        radial-gradient(700px 550px at 45% 80%, rgba(255,77,109,.08), transparent 60%);
-      filter: blur(35px);
-      animation: float 10s ease-in-out infinite alternate;
-      opacity:.9;
-    }
-    @keyframes float{
-      from{transform: translate3d(-10px,-8px,0) scale(1)}
-      to  {transform: translate3d(14px,10px,0) scale(1.02)}
-    }
-
-    .wrap{
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 26px 16px 46px;
-      position:relative;
-    }
-
-    .top{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom:18px;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding: 14px 16px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.04);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-    }
-    .logo{
-      width:38px; height:38px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, rgba(124,92,255,.95), rgba(43,231,197,.9));
-      box-shadow: 0 12px 30px rgba(124,92,255,.18);
-      position:relative;
-      overflow:hidden;
-    }
-    .logo:after{
-      content:"";
-      position:absolute; inset:-40%;
-      background: linear-gradient(135deg, rgba(255,255,255,.22), transparent 60%);
-      transform: rotate(25deg);
-      animation: sheen 2.8s ease-in-out infinite;
-    }
-    @keyframes sheen{
-      0%{transform:translateX(-60%) rotate(25deg)}
-      55%{transform:translateX(60%) rotate(25deg)}
-      100%{transform:translateX(60%) rotate(25deg)}
-    }
-    .brand h1{
-      font-size: 16px;
-      margin:0;
-      letter-spacing:.2px;
-      line-height:1.15;
-    }
-    .brand p{
-      margin:4px 0 0;
-      color:var(--muted);
-      font-size: 12.5px;
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 10px 12px;
-      border-radius: 999px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.04);
-      backdrop-filter: blur(10px);
-      box-shadow: var(--shadow);
-      font-size:12.5px;
-      color: var(--muted);
-      user-select:none;
-      white-space:nowrap;
-    }
-    .dot{
-      width:10px;height:10px;border-radius:50%;
-      background: rgba(255,255,255,.18);
-      box-shadow: 0 0 0 6px rgba(255,255,255,.05);
-    }
-    .dot.ok{background: rgba(43,231,197,.95); box-shadow: 0 0 0 6px rgba(43,231,197,.10)}
-    .dot.bad{background: rgba(255,77,109,.95); box-shadow: 0 0 0 6px rgba(255,77,109,.10)}
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1.15fr .85fr;
-      gap:16px;
-      margin-top: 14px;
-    }
-    @media (max-width: 880px){
-      .grid{grid-template-columns: 1fr;}
-    }
-
-    .card{
-      border: 1px solid var(--line);
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
-      overflow:hidden;
-      position:relative;
-    }
-    .card .hd{
-      padding: 16px 16px 0;
-    }
-    .card .hd h2{
-      margin:0;
-      font-size: 15px;
-      letter-spacing:.2px;
-    }
-    .card .hd p{
-      margin:6px 0 0;
-      color:var(--muted);
-      font-size: 12.5px;
-    }
-    .card .bd{
-      padding: 14px 16px 16px;
-    }
-
-    .row{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-    }
-    @media (max-width: 520px){
-      .row{grid-template-columns: 1fr;}
-    }
-
-    .field label{
-      display:block;
-      font-size: 12px;
-      color: var(--muted);
-      margin: 0 0 6px;
-    }
-    .input, select{
-      width:100%;
-      padding: 12px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(8,10,20,.38);
-      color: var(--text);
-      outline: none;
-      transition: .18s ease;
-    }
-    .input:focus, select:focus{
-      border-color: rgba(124,92,255,.7);
-      box-shadow: 0 0 0 5px rgba(124,92,255,.12);
-      transform: translateY(-1px);
-    }
-    .hint{
-      margin-top:6px;
-      font-size: 12px;
-      color: rgba(233,236,255,.62);
-    }
-
-    .btns{
-      display:flex;
-      gap:10px;
-      margin-top: 12px;
-      flex-wrap:wrap;
-    }
-    .btn{
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      color: var(--text);
-      padding: 12px 14px;
-      border-radius: 14px;
-      cursor:pointer;
-      transition: .18s ease;
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      user-select:none;
-    }
-    .btn:hover{transform: translateY(-1px); background: rgba(255,255,255,.08)}
-    .btn:active{transform: translateY(0px) scale(.99)}
-    .btn.primary{
-      border:none;
-      background: linear-gradient(135deg, rgba(124,92,255,.95), rgba(43,231,197,.85));
-      box-shadow: 0 16px 40px rgba(124,92,255,.18);
-    }
-    .btn.primary:hover{filter: brightness(1.02)}
-    .btn.danger{
-      border:1px solid rgba(255,77,109,.35);
-      background: rgba(255,77,109,.08);
-    }
-
-    .icon{
-      width:16px;height:16px; display:inline-block;
-    }
-
-    .out{
-      margin-top: 12px;
-      border-top: 1px solid var(--line);
-      padding-top: 12px;
-    }
-    .kbd{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      background: rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.12);
-      padding: 10px 12px;
-      border-radius: 14px;
-      overflow:auto;
-      max-height: 210px;
-      line-height:1.35;
-      font-size: 12.5px;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .keyline{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-      margin: 10px 0 8px;
-    }
-    .keypill{
-      font-family: ui-monospace, monospace;
-      letter-spacing:.6px;
-      font-weight: 700;
-      padding: 10px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(43,231,197,.35);
-      background: rgba(43,231,197,.08);
-      color: rgba(233,255,250,.95);
-    }
-
-    .spinner{
-      width:16px;height:16px;
-      border-radius:50%;
-      border: 2px solid rgba(255,255,255,.25);
-      border-top-color: rgba(255,255,255,.88);
-      animation: spin .85s linear infinite;
-    }
-    @keyframes spin{to{transform: rotate(360deg)}}
-
-    /* toast */
-    .toast{
-      position: fixed;
-      left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%) translateY(20px);
-      background: rgba(10,12,24,.72);
-      border: 1px solid rgba(255,255,255,.14);
-      padding: 12px 14px;
-      border-radius: 14px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
-      opacity:0;
-      pointer-events:none;
-      transition: .22s ease;
-      max-width: 92vw;
-    }
-    .toast.show{
-      opacity:1;
-      transform: translateX(-50%) translateY(0px);
-    }
-    .toast b{color:var(--text)}
-    .toast span{color:var(--muted); margin-left:8px}
-    .toast .t-ok{color: var(--ok)}
-    .toast .t-bad{color: var(--bad)}
-
-    .mini{
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 10px;
-    }
-    a{color: rgba(180,210,255,.95); text-decoration: none}
-    a:hover{text-decoration: underline}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Get Key</title>
+<style>
+:root{
+  --bg:#0b1022; --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.12);
+  --txt:#e9ecff; --mut:rgba(233,236,255,.65); --acc:#7c5cff; --ok:#2be7c5;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; color:var(--txt);
+  background:
+    radial-gradient(800px 400px at 20% 10%, rgba(124,92,255,.22), transparent 60%),
+    radial-gradient(700px 400px at 80% 30%, rgba(43,231,197,.16), transparent 55%),
+    linear-gradient(180deg,#070812,var(--bg));
+}
+.card{
+  width:100%; max-width:420px; text-align:center; padding:22px 20px 26px;
+  background:var(--card); border:1px solid var(--line); border-radius:20px;
+  backdrop-filter:blur(12px); box-shadow:0 25px 80px rgba(0,0,0,.45);
+}
+.logo{
+  width:56px;height:56px;margin:0 auto 14px;border-radius:16px;
+  background:linear-gradient(135deg,#7c5cff,#2be7c5);
+  box-shadow:0 12px 40px rgba(124,92,255,.35);
+}
+h1{margin:6px 0 4px;font-size:20px}
+p{margin:0 0 18px;font-size:13px;color:var(--mut)}
+button{
+  width:100%; border:none; border-radius:16px; padding:14px 16px;
+  font-size:15px; font-weight:600; cursor:pointer; color:white;
+  background:linear-gradient(135deg,#7c5cff,#2be7c5);
+  box-shadow:0 16px 40px rgba(124,92,255,.35); transition:.2s;
+}
+button:hover{transform:translateY(-1px);filter:brightness(1.05)}
+button:active{transform:scale(.98)}
+.key{
+  margin-top:16px; padding:12px; border-radius:14px;
+  border:1px solid rgba(43,231,197,.35); background:rgba(43,231,197,.1);
+  font-family:ui-monospace,monospace; font-weight:700; letter-spacing:.6px;
+  display:none; word-break:break-all;
+}
+.note{margin-top:10px;font-size:12px;color:var(--mut)}
+</style>
 </head>
 <body>
-  <div class="glow"></div>
 
-  <div class="wrap">
-    <div class="top">
-      <div class="brand">
-        <div class="logo"></div>
-        <div>
-          <h1>GetKey Panel</h1>
-          <p>GitHub Pages → Firestore REST (tạo key + lưu fields)</p>
-        </div>
-      </div>
-
-      <div class="pill" id="statusPill">
-        <span class="dot" id="statusDot"></span>
-        <span id="statusText">Chưa kiểm tra cấu hình</span>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div class="card">
-        <div class="hd">
-          <h2>Tạo key</h2>
-          <p>Generate key ngẫu nhiên, set hạn dùng, max uses… rồi bắn lên Firestore collection <b>keys</b>.</p>
-        </div>
-        <div class="bd">
-          <div class="row">
-            <div class="field">
-              <label>Prefix</label>
-              <input class="input" id="prefix" value="HH" placeholder="VD: HH" />
-              <div class="hint">Key sẽ có dạng: <b>PREFIX-XXXXXXXXXXXX</b></div>
-            </div>
-            <div class="field">
-              <label>Độ dài phần random</label>
-              <select id="len">
-                <option value="8">8</option>
-                <option value="10">10</option>
-                <option value="12" selected>12</option>
-                <option value="16">16</option>
-              </select>
-              <div class="hint">Dài hơn → khó trùng hơn.</div>
-            </div>
-          </div>
-
-          <div class="row" style="margin-top:12px">
-            <div class="field">
-              <label>Hạn dùng (ngày) – expires_seconds</label>
-              <input class="input" id="days" type="number" min="1" value="1" />
-              <div class="hint">1 ngày = 86400s. App sẽ set <code>first_used</code> lần đầu.</div>
-            </div>
-            <div class="field">
-              <label>Max uses (số thiết bị)</label>
-              <input class="input" id="maxUses" type="number" min="1" value="1" />
-              <div class="hint">Giống field <code>max_uses</code>.</div>
-            </div>
-          </div>
-
-          <div class="btns">
-            <button class="btn primary" id="btnGen">
-              <span class="icon">⚡</span>
-              <span>TẠO KEY</span>
-              <span id="sp" style="display:none" class="spinner"></span>
-            </button>
-
-            <button class="btn" id="btnCopy" disabled>
-              <span class="icon">📋</span>
-              <span>Copy key</span>
-            </button>
-
-            <button class="btn danger" id="btnClear">
-              <span class="icon">🧹</span>
-              <span>Clear</span>
-            </button>
-          </div>
-
-          <div class="out" id="outBox" style="display:none">
-            <div class="keyline">
-              <div class="keypill" id="keyPill">—</div>
-              <a id="fireLink" href="#" target="_blank" rel="noopener">Mở trong Firestore</a>
-            </div>
-            <div class="kbd" id="log"></div>
-            <div class="mini">
-              Tip: Nếu bấm tạo key mà báo <b>Already exists</b> → panel sẽ tự retry key khác.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="hd">
-          <h2>Cấu hình</h2>
-          <p>Sửa 2 dòng <b>PROJECT_ID</b> + <b>API_KEY</b> trong code. Xong bấm “Test”.</p>
-        </div>
-        <div class="bd">
-          <div class="field">
-            <label>PROJECT_ID</label>
-            <input class="input" id="pid" />
-            <div class="hint">Ví dụ: <code>key-tool-bb37b</code></div>
-          </div>
-
-          <div class="field" style="margin-top:12px">
-            <label>WEB API KEY</label>
-            <input class="input" id="akey" />
-            <div class="hint">Chuỗi bắt đầu bằng <code>AIzaSy...</code></div>
-          </div>
-
-          <div class="btns">
-            <button class="btn" id="btnTest">
-              <span class="icon">🧪</span>
-              <span>Test Firestore</span>
-            </button>
-          </div>
-
-          <div class="out" style="margin-top:12px">
-            <div class="kbd" id="cfgNote">Chưa test.</div>
-            <div class="mini">
-              (Khuyến nghị) Restrict API key theo domain GitHub Pages để đỡ bị người khác xài ké.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="mini" style="margin-top:16px">
-      <b>Lưu ý bảo mật:</b> kiểu “GitHub Pages + Firestore REST” là panel client-side, nên API key sẽ lộ trong source.
-      Muốn đỡ bị abuse → hãy <b>restrict API key</b> theo domain, và rules Firestore tối thiểu quyền.
-    </div>
-  </div>
-
-  <div class="toast" id="toast"></div>
+<div class="card">
+  <div class="logo"></div>
+  <h1>Nhận Key</h1>
+  <p>Bấm nút bên dưới để lấy key sử dụng tool</p>
+  <button id="btn">⚡ LẤY KEY</button>
+  <div class="key" id="keyBox"></div>
+  <div class="note" id="note"></div>
+</div>
 
 <script>
-/** =========================
- *  1) SỬA 2 DÒNG NÀY
- *  ========================= */
-const CFG = {
-  PROJECT_ID: "key-tool-bb37b",        // <-- thay project id của bạn
-  API_KEY: "AIzaSyDR73HZ6MyMF5GRgw3bx_c7vExGuGmzLs4",    // <-- thay Web API Key của bạn
-  COLLECTION: "keys"
+/* ===== CONFIG ẨN ===== */
+const PROJECT_ID = "key-tool-bb37b";
+const API_KEY    = "AIzaSyDR73HZ6MyMF5GRgw3bx_c7vExGuGmzLs4";   // Web API Key Firebase
+const COLLECTION = "keys";
+
+/* Link gate VuotNhanh (copy từ VuotNhanh sau khi tạo API) */
+const GATE_URL   = "https://vuotnhanh.com/abcXYZ";
+
+/* Key settings */
+const PREFIX = "HH";
+const RANDOM_LEN = 12;
+const EXPIRES_SECONDS = 86400; // 1 ngày
+const MAX_USES = 1;
+
+/* ===== Utils ===== */
+function qs(name){ return new URLSearchParams(location.search).get(name); }
+function randKey(){
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const arr = new Uint8Array(RANDOM_LEN);
+  crypto.getRandomValues(arr);
+  let out=""; for(let i=0;i<arr.length;i++) out += chars[arr[i]%chars.length];
+  return `${PREFIX}-${out}`;
+}
+
+async function createKey(){
+  for(let i=0;i<6;i++){
+    const key = randKey();
+    const url =
+      `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}`+
+      `/databases/(default)/documents/${COLLECTION}`+
+      `?documentId=${encodeURIComponent(key)}&key=${encodeURIComponent(API_KEY)}`;
+
+    const body = {
+      fields:{
+        expires:{integerValue:"0"},
+        expires_seconds:{integerValue:String(EXPIRES_SECONDS)},
+        device_id:{stringValue:""},
+        first_used:{integerValue:"0"},
+        max_uses:{integerValue:String(MAX_USES)},
+        current_uses:{integerValue:"0"}
+      }
+    };
+
+    const r = await fetch(url,{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(body)
+    });
+    if(r.ok) return key;
+  }
+  throw new Error("Create key failed");
+}
+
+/* ===== Gate flow ===== */
+function goGate(){
+  sessionStorage.setItem("want_key","1");
+  location.href = GATE_URL;
+}
+
+async function afterGate(){
+  // VuotNhanh redirect về ?ok=1
+  if(qs("ok") !== "1") return null;
+  if(sessionStorage.getItem("want_key") !== "1") return null;
+
+  sessionStorage.removeItem("want_key");
+  history.replaceState({}, "", location.origin + location.pathname);
+
+  return await createKey();
+}
+
+/* ===== UI ===== */
+const btn = document.getElementById("btn");
+const box = document.getElementById("keyBox");
+const note = document.getElementById("note");
+
+btn.onclick = ()=>{
+  box.style.display="none";
+  note.textContent="Đang chuyển sang trang xác nhận…";
+  goGate();
 };
-/** ========================= */
 
-const $ = (id) => document.getElementById(id);
-
-function setStatus(ok, text){
-  $("statusText").textContent = text;
-  $("statusDot").className = "dot " + (ok ? "ok" : "bad");
-}
-
-function toast(ok, title, msg=""){
-  const el = $("toast");
-  el.innerHTML = `<b class="${ok ? 't-ok' : 't-bad'}">${title}</b><span>${msg}</span>`;
-  el.classList.add("show");
-  setTimeout(()=> el.classList.remove("show"), 2200);
-}
-
-function log(obj){
-  $("outBox").style.display = "block";
-  const s = (typeof obj === "string") ? obj : JSON.stringify(obj, null, 2);
-  $("log").textContent = s;
-}
-
-function cfgLog(s){ $("cfgNote").textContent = s; }
-
-function baseUrl(){
-  return `https://firestore.googleapis.com/v1/projects/${CFG.PROJECT_ID}/databases/(default)/documents/${CFG.COLLECTION}`;
-}
-
-// crypto random
-function randKey(prefix, len){
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // bỏ I O 0 1 cho đỡ nhầm
-  const bytes = new Uint8Array(len);
-  crypto.getRandomValues(bytes);
-  let out = "";
-  for (let i=0;i<len;i++){
-    out += alphabet[bytes[i] % alphabet.length];
-  }
-  return `${prefix}-${out}`;
-}
-
-function firestoreConsoleLink(docId){
-  // Link console dạng data path
-  const enc = encodeURIComponent(`keys/${docId}`);
-  return `https://console.firebase.google.com/project/${CFG.PROJECT_ID}/firestore/databases/-default-/data/${enc}`;
-}
-
-async function testFirestore(){
-  const url =
-    `https://firestore.googleapis.com/v1/projects/${CFG.PROJECT_ID}` +
-    `/databases/(default)/documents/${CFG.COLLECTION}` +
-    `?pageSize=1&key=${encodeURIComponent(CFG.API_KEY)}`;
-
+(async ()=>{
   try{
-    const r = await fetch(url);
-    const t = await r.text();
-
-    if (r.status === 200){
-      setStatus(true, "OK – Firestore connected");
-      cfgLog("OK: API key + Project ID hợp lệ, có quyền đọc collection.");
-      return;
-    }
-
-    if (r.status === 403){
-      setStatus(false, "403 – Bị chặn bởi Rules");
-      cfgLog("403: API key đúng nhưng Firestore Rules chặn READ.");
-      return;
-    }
-
-    setStatus(false, `Status ${r.status}`);
-    cfgLog(t);
-
-  }catch(e){
-    setStatus(false, "Network / JS error");
-    cfgLog(String(e));
-  }
-}
-
-
-function setLoading(on){
-  $("sp").style.display = on ? "inline-block" : "none";
-  $("btnGen").disabled = on;
-}
-
-async function createKeyOnFirestore(docId, expiresSeconds, maxUses){
-  const url = `${baseUrl()}?documentId=${encodeURIComponent(docId)}&key=${encodeURIComponent(CFG.API_KEY)}`;
-
-  const body = {
-    fields: {
-      expires: { integerValue: "0" },
-      expires_seconds: { integerValue: String(expiresSeconds) },
-      device_id: { stringValue: "" },
-      first_used: { integerValue: "0" },
-      max_uses: { integerValue: String(maxUses) },
-      current_uses: { integerValue: "0" }
-    }
-  };
-
-  const r = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-
-  const text = await r.text();
-  let json;
-  try{ json = JSON.parse(text); }catch{ json = text; }
-
-  return { ok: r.ok, status: r.status, data: json };
-}
-
-async function genAndCreate(){
-  const prefix = ($("prefix").value || "HH").trim().toUpperCase();
-  const len = parseInt($("len").value, 10) || 12;
-  const days = Math.max(1, parseInt($("days").value, 10) || 1);
-  const maxUses = Math.max(1, parseInt($("maxUses").value, 10) || 1);
-  const expiresSeconds = days * 86400;
-
-  setLoading(true);
-  $("btnCopy").disabled = true;
-
-  try{
-    // retry nếu trùng key (409)
-    for (let attempt=1; attempt<=6; attempt++){
-      const key = randKey(prefix, len);
-      const res = await createKeyOnFirestore(key, expiresSeconds, maxUses);
-
-      if (res.ok){
-        $("keyPill").textContent = key;
-        $("fireLink").href = firestoreConsoleLink(key);
-        log({
-          message: "CREATED",
-          key,
-          expires_seconds: expiresSeconds,
-          max_uses: maxUses,
-          firestore_response: res.data
-        });
-        toast(true, "Tạo key OK", key);
-        $("btnCopy").disabled = false;
-        return;
-      }
-
-      // already exists => retry
-      const isAlready =
-        res.status === 409 ||
-        (typeof res.data === "object" && res.data?.error?.status === "ALREADY_EXISTS");
-
-      if (isAlready){
-        if (attempt === 6){
-          log({ error: "Trùng key quá nhiều lần", last: res });
-          toast(false, "ERROR", "Trùng key nhiều lần");
-          return;
-        }
-        continue;
-      }
-
-      // các lỗi khác -> show luôn
-      log({ error: "CREATE FAILED", status: res.status, detail: res.data });
-      toast(false, "ERROR", `Status ${res.status}`);
-      return;
+    const key = await afterGate();
+    if(key){
+      box.textContent = key;
+      box.style.display="block";
+      note.textContent="Đã xác nhận. Key đã copy!";
+      navigator.clipboard.writeText(key);
     }
   }catch(e){
-    log({ error: "JS ERROR", detail: String(e) });
-    toast(false, "JS ERROR", String(e));
-  }finally{
-    setLoading(false);
+    note.textContent="Xác nhận thất bại, thử lại.";
   }
-}
-
-async function copyKey(){
-  const key = $("keyPill").textContent.trim();
-  if (!key || key === "—") return;
-  try{
-    await navigator.clipboard.writeText(key);
-    toast(true, "Đã copy", key);
-  }catch{
-    // fallback
-    const ta = document.createElement("textarea");
-    ta.value = key;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand("copy");
-    document.body.removeChild(ta);
-    toast(true, "Đã copy", key);
-  }
-}
-
-function clearOut(){
-  $("outBox").style.display = "none";
-  $("log").textContent = "";
-  $("keyPill").textContent = "—";
-  $("btnCopy").disabled = true;
-}
-
-function syncCfgUI(){
-  $("pid").value = CFG.PROJECT_ID;
-  $("akey").value = CFG.API_KEY;
-}
-
-function applyCfgFromUI(){
-  CFG.PROJECT_ID = $("pid").value.trim();
-  CFG.API_KEY = $("akey").value.trim();
-  toast(true, "Đã áp dụng config");
-}
-
-$("btnGen").addEventListener("click", genAndCreate);
-$("btnCopy").addEventListener("click", copyKey);
-$("btnClear").addEventListener("click", clearOut);
-
-$("btnTest").addEventListener("click", async ()=>{
-  applyCfgFromUI();
-  await testFirestore();
-});
-
-syncCfgUI();
-setStatus(false, "Chưa test");
-cfgLog("Nhập PROJECT_ID + API_KEY rồi bấm Test Firestore.");
+})();
 </script>
 
 </body>
