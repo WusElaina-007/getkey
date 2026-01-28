@@ -508,30 +508,36 @@ function firestoreConsoleLink(docId){
 }
 
 async function testFirestore(){
-  // test bằng cách GET collection root (không phải list doc) -> thường 404/403 tuỳ rules,
-  // nên ta test bằng runQuery nhẹ: check xem API key + project id đúng hay không bằng call invalid doc (expect 404, not 403)
-  const url = `${baseUrl()}/__test__?key=${encodeURIComponent(CFG.API_KEY)}`;
+  const url =
+    `https://firestore.googleapis.com/v1/projects/${CFG.PROJECT_ID}` +
+    `/databases/(default)/documents/${CFG.COLLECTION}` +
+    `?pageSize=1&key=${encodeURIComponent(CFG.API_KEY)}`;
+
   try{
-    const r = await fetch(url, { method: "GET" });
+    const r = await fetch(url);
     const t = await r.text();
+
+    if (r.status === 200){
+      setStatus(true, "OK – Firestore connected");
+      cfgLog("OK: API key + Project ID hợp lệ, có quyền đọc collection.");
+      return;
+    }
+
     if (r.status === 403){
-      setStatus(false, "403 (Rules/API key hạn chế)");
-      cfgLog("403: API key đúng nhưng Firestore Rules/Restriction đang chặn. Nếu bạn muốn web tạo key, rules phải allow create.");
+      setStatus(false, "403 – Bị chặn bởi Rules");
+      cfgLog("403: API key đúng nhưng Firestore Rules chặn READ.");
       return;
     }
-    if (r.status === 404){
-      setStatus(true, "OK (project/api key hợp lệ)");
-      cfgLog("OK: project + api key có vẻ đúng (404 là bình thường vì doc __test__ không tồn tại).");
-      return;
-    }
-    // các status khác vẫn log để bạn xem
+
     setStatus(false, `Status ${r.status}`);
-    cfgLog(`Status ${r.status}: ${t}`);
+    cfgLog(t);
+
   }catch(e){
-    setStatus(false, "Network/JS error");
+    setStatus(false, "Network / JS error");
     cfgLog(String(e));
   }
 }
+
 
 function setLoading(on){
   $("sp").style.display = on ? "inline-block" : "none";
