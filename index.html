@@ -1,65 +1,64 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Get Key</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system;
-      background:radial-gradient(circle at top,#1c2c55,#060a14);
-      color:#fff;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      height:100vh;
-    }
-    .box{
-      width:90%;
-      max-width:380px;
-      background:rgba(255,255,255,.06);
-      backdrop-filter:blur(16px);
-      border-radius:18px;
-      padding:26px;
-      box-shadow:0 30px 80px rgba(0,0,0,.45);
-      text-align:center;
-      animation:pop .35s ease;
-    }
-    @keyframes pop{
-      from{transform:scale(.92);opacity:0}
-      to{transform:scale(1);opacity:1}
-    }
-    h2{margin-top:0}
-    button{
-      width:100%;
-      padding:14px;
-      border:none;
-      border-radius:14px;
-      font-size:16px;
-      font-weight:600;
-      cursor:pointer;
-      background:linear-gradient(135deg,#5aa2ff,#6bffe2);
-      color:#000;
-    }
-    .key{
-      margin-top:16px;
-      padding:14px;
-      background:#000;
-      border-radius:12px;
-      font-family:monospace;
-      word-break:break-all;
-      font-size:14px;
-    }
-    .hint{
-      opacity:.8;
-      font-size:13px;
-      margin-top:10px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Get Key</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;
+  font-family:system-ui,-apple-system;
+  background:radial-gradient(circle at top,#1d2f5a,#070b16);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+.box{
+  width:90%;
+  max-width:380px;
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(16px);
+  border-radius:18px;
+  padding:26px;
+  box-shadow:0 30px 80px rgba(0,0,0,.45);
+  text-align:center;
+  animation:pop .35s ease;
+}
+@keyframes pop{
+  from{transform:scale(.92);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+  background:linear-gradient(135deg,#5aa2ff,#6bffe2);
+  color:#000;
+}
+.key{
+  margin-top:16px;
+  padding:14px;
+  background:#000;
+  border-radius:12px;
+  font-family:monospace;
+  word-break:break-all;
+  font-size:14px;
+}
+.hint{
+  opacity:.8;
+  font-size:13px;
+  margin-top:10px;
+}
+</style>
 </head>
-<body>
 
+<body>
 <div class="box">
   <h2>🔑 GET KEY</h2>
   <p>Nhấn nút → vượt link → nhận key</p>
@@ -73,6 +72,7 @@
 <script type="module">
 /* ================== CONFIG ================== */
 const VUOTNHANH_API = "ff60b470-d49a-4c0c-89e2-968102e9efab";
+const RETURN_URL = "https://wuselaina-007.github.io/getkey/?passed=1";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
@@ -81,7 +81,7 @@ import {
 
 const firebaseConfig = {
   apiKey: "AIzaSyDR73HZ6MyMF5GRgw3bx_c7vExGuGmzLs4",
-  projectId: "key-tool-bb37b",
+  projectId: "key-tool-bb37b"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -95,18 +95,40 @@ function genKey(){
 async function saveKey(key){
   await setDoc(doc(db,"keys",key),{
     created_at: serverTimestamp(),
-    max_uses: 1,
     used: 0,
+    max_uses: 1,
     source: "vuotnhanh"
   });
 }
 
-window.goVuot = () => {
-  const returnUrl = encodeURIComponent(
-    location.origin + location.pathname + "?passed=1"
-  );
-  location.href =
-    `https://vuotnhanh.com/st?api=${VUOTNHANH_API}&url=${returnUrl}`;
+/* ================== VUOTNHANH API ================== */
+window.goVuot = async () => {
+  try{
+    const apiUrl =
+      "https://vuotnhanh.com/api"
+      + "?api=" + encodeURIComponent(VUOTNHANH_API)
+      + "&url=" + encodeURIComponent(RETURN_URL);
+
+    const res = await fetch(apiUrl);
+    const text = await res.text();
+
+    // TEXT response
+    if(text.startsWith("http")){
+      location.href = text.trim();
+      return;
+    }
+
+    // JSON response
+    const data = JSON.parse(text);
+    if(data.status === "success"){
+      location.href = data.shortenedUrl;
+    }else{
+      alert("VuotNhanh error: " + data.message);
+    }
+  }catch(e){
+    alert("Lỗi gọi VuotNhanh API");
+    console.error(e);
+  }
 };
 
 /* ================== CALLBACK ================== */
@@ -125,6 +147,5 @@ if(params.get("passed")==="1"){
   navigator.clipboard.writeText(key);
 }
 </script>
-
 </body>
 </html>
