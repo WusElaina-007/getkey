@@ -4,142 +4,101 @@
 <meta charset="UTF-8">
 <title>Get Key</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body{
   margin:0;
-  font-family:system-ui,-apple-system;
-  background:radial-gradient(circle at top,#1d2f5a,#070b16);
-  color:#fff;
+  height:100vh;
   display:flex;
   align-items:center;
   justify-content:center;
-  height:100vh;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  font-family:system-ui;
+  color:white;
 }
-.box{
-  width:90%;
-  max-width:380px;
-  background:rgba(255,255,255,.06);
-  backdrop-filter:blur(16px);
-  border-radius:18px;
-  padding:26px;
-  box-shadow:0 30px 80px rgba(0,0,0,.45);
+.card{
+  width:280px;
+  padding:20px;
+  border-radius:16px;
+  background:rgba(255,255,255,.08);
+  backdrop-filter:blur(10px);
+  box-shadow:0 20px 40px rgba(0,0,0,.4);
   text-align:center;
-  animation:pop .35s ease;
-}
-@keyframes pop{
-  from{transform:scale(.92);opacity:0}
-  to{transform:scale(1);opacity:1}
 }
 button{
   width:100%;
   padding:14px;
   border:none;
-  border-radius:14px;
-  font-size:16px;
-  font-weight:600;
-  cursor:pointer;
-  background:linear-gradient(135deg,#5aa2ff,#6bffe2);
-  color:#000;
-}
-.key{
-  margin-top:16px;
-  padding:14px;
-  background:#000;
   border-radius:12px;
-  font-family:monospace;
+  font-size:16px;
+  background:linear-gradient(135deg,#00f2fe,#4facfe);
+  color:black;
+  font-weight:700;
+}
+#keyBox{
+  margin-top:12px;
+  display:none;
+  background:black;
+  padding:10px;
+  border-radius:8px;
   word-break:break-all;
-  font-size:14px;
 }
-.hint{
-  opacity:.8;
-  font-size:13px;
-  margin-top:10px;
-}
+small{opacity:.7}
 </style>
 </head>
 
 <body>
-<div class="box">
+<div class="card">
   <h2>🔑 GET KEY</h2>
-  <p>Nhấn nút → vượt link → nhận key</p>
-
-  <button onclick="goVuot()">🚀 LẤY KEY</button>
-
-  <div id="keyBox" class="key" style="display:none"></div>
-  <div class="hint" id="hint"></div>
+  <small>Nhấn nút → vượt link → nhận key</small><br><br>
+  <button onclick="handle()">🚀 LẤY KEY</button>
+  <div id="keyBox"></div>
 </div>
 
-<!-- ================= FIREBASE + LOGIC ================= -->
-<script type="module">
-/* ====== CONFIG ====== */
-const VUOTNHANH_API = "ff60b470-d49a-4c0c-89e2-968102e9efab";
-const RETURN_URL = "https://wuselaina-007.github.io/getkey/?passed=1";
+<script>
+/* ================== CẤU HÌNH ================== */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getFirestore, doc, setDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// DÁN LINK GATE VUOTNHANH Ở ĐÂY (KHÔNG PHẢI /api)
+const VUOT_LINK = "https://vuotnhanh.com/XXXXX"; 
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDR73HZ6MyMF5GRgw3bx_c7vExGuGmzLs4",
-  projectId: "key-tool-bb37b"
-};
+// Firebase Firestore REST
+const PROJECT_ID = "key-tool-bb37b";
+const API_KEY = "AIzaSyDR73HZ6MyMF5GRgw3bx_c7vExGuGmzLs4";
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+/* ============================================== */
 
-/* ====== FUNCTIONS ====== */
-function genKey(){
-  return "HK-" + crypto.randomUUID().replace(/-/g,"").toUpperCase();
+function qs(k){
+  return new URLSearchParams(location.search).get(k);
 }
 
-async function saveKey(key){
-  await setDoc(doc(db,"keys",key),{
-    created_at: serverTimestamp(),
-    used: 0,
-    max_uses: 1,
-    source: "vuotnhanh"
+async function createKey(){
+  const key = crypto.randomUUID();
+
+  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/keys?key=${API_KEY}`;
+
+  await fetch(url,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      fields:{
+        key:{stringValue:key},
+        created:{timestampValue:new Date().toISOString()}
+      }
+    })
   });
-}
 
-/* ====== VUOTNHANH (NO FETCH – NO CORS) ====== */
-window.goVuot = () => {
-  const url =
-    "https://vuotnhanh.com/api"
-    + "?api=" + encodeURIComponent(VUOTNHANH_API)
-    + "&url=" + encodeURIComponent(RETURN_URL)
-    + "&format=text";
-
-  // redirect thẳng → browser xử lý
-  location.href = url;
-};
-
-/* ====== CALLBACK AFTER PASS ====== */
-const params = new URLSearchParams(location.search);
-if(params.get("passed") === "1"){
-  const key = genKey();
-  await saveKey(key);
-
-  const box = document.getElementById("keyBox");
-  box.style.display = "block";
-  box.textContent = key;
-
-  document.getElementById("hint").textContent =
-    "Key đã copy – dán vào tool để login";
-
-  navigator.clipboard.writeText(key);
-}
-</script>
-</body>
-</html>
-  const box = document.getElementById("keyBox");
+  const box=document.getElementById("keyBox");
   box.style.display="block";
   box.textContent=key;
-
-  document.getElementById("hint").textContent =
-    "Key đã copy – dán vào tool để login";
-
   navigator.clipboard.writeText(key);
+}
+
+async function handle(){
+  if(qs("passed")!=="1"){
+    location.href = VUOT_LINK;
+    return;
+  }
+  await createKey();
 }
 </script>
 </body>
