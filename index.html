@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Get Key</title>
+</head>
+<body>
+  <h2>Generate Key</h2>
+  <button onclick="gen()">TẠO KEY</button>
+  <pre id="out"></pre>
+
+<script>
+const API_KEY = "AIzaSyDR73HZ6MyMF5GRgw3bx_c7vExGuGmzLs4";
+const PROJECT_ID = "key-tool-bb37b";
+
+function randKey() {
+  return "HH-" + Math.random().toString(36).substring(2,10).toUpperCase();
+}
+
+async function gen() {
+  const key = randKey();
+  const url =
+    `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/keys?key=${API_KEY}`;
+
+  const body = {
+    fields: {
+      expires: { integerValue: "0" },
+      expires_seconds: { integerValue: "86400" },
+      device_id: { stringValue: "" },
+      first_used: { integerValue: "0" },
+      max_uses: { integerValue: "1" },
+      current_uses: { integerValue: "0" }
+    }
+  };
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(body)
+  });
+
+  document.getElementById("out").textContent =
+    res.ok ? "KEY: " + key : "ERROR";
+}
+</script>
+</body>
+</html>
