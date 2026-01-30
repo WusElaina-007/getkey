@@ -1,49 +1,146 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Verify</title>
+  <meta charset="UTF-8" />
+  <title>Verify Key</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
-    body{font-family:system-ui;background:#0b1020;color:#fff;display:flex;min-height:100vh;align-items:center;justify-content:center}
-    .card{width:min(620px,92vw);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px}
-    .muted{opacity:.75}
-    pre{white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,.25);padding:12px;border-radius:12px}
-    button{padding:10px 14px;border-radius:12px;border:0;cursor:pointer}
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #0b1220, #030712);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #e5e7eb;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      text-align: center;
+    }
+    .status {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #9ca3af;
+      text-align: center;
+      min-height: 20px;
+    }
+    .key-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #020617;
+      border: 1px dashed #2563eb;
+      font-family: monospace;
+      font-size: 15px;
+      text-align: center;
+      word-break: break-all;
+      display: none;
+    }
+    .btn {
+      margin-top: 16px;
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .btn:active { transform: scale(0.98); }
   </style>
 </head>
+
 <body>
   <div class="card">
-    <h2>THÀNH CÔNG</h2>
-    <p class="muted">Hệ thống đang kiểm tra key...</p>
-    <pre id="out">Loading...</pre>
-    <div style="display:flex;gap:10px;margin-top:10px">
-      <button id="copy">Copy</button>
-      <button id="home">Về trang lấy key</button>
-    </div>
+    <h1>🔐 Xác minh key</h1>
+    <div id="status" class="status">Đang kiểm tra key…</div>
+
+    <div id="keyBox" class="key-box"></div>
+
+    <button id="copyBtn" class="btn" style="display:none">📋 Copy key</button>
   </div>
 
 <script>
-const WORKER_BASE = "https://key-vuotnhanh-api.yeudaushope.workers.dev"; // <-- sửa đúng worker
-const out = document.getElementById("out");
+  // ⚠️ SỬA ĐÚNG WORKER VERIFY CỦA BẠN
+  const VERIFY_API = "https://key-vuotnhanh-api.yeudaushope.workers.dev/api/verify";
 
-document.getElementById("home").onclick = () => location.href = "./index.html";
-document.getElementById("copy").onclick = async () => {
-  try { await navigator.clipboard.writeText(out.textContent); alert("Đã copy!"); }
-  catch { alert("Không copy được, copy thủ công nhé."); }
-};
+  const statusEl = document.getElementById("status");
+  const keyBox   = document.getElementById("keyBox");
+  const copyBtn  = document.getElementById("copyBtn");
 
-(async () => {
-  const key = new URLSearchParams(location.search).get("key");
-  if (!key) { out.textContent = "Thiếu key trên URL."; return; }
+  // =========================
+  // LẤY KEY TỪ URL
+  // =========================
+  function extractKey() {
+    const sp = new URLSearchParams(location.search);
 
-  const r = await fetch(`${WORKER_BASE}/api/verify?key=${encodeURIComponent(key)}`);
-  const j = await r.json();
+    // case 1: ?key=
+    let key = sp.get("key");
+    if (key) return key;
 
-  if (!j.ok) { out.textContent = "Lỗi: " + j.error; return; }
+    // case 2: key nằm trong passed
+    let passed = sp.get("passed");
+    if (!passed) return null;
 
-  out.textContent = `KEY CỦA BẠN:\n\n${j.key}\n\nCòn lại: ${Math.ceil(j.time_left/60)} phút`;
-})();
+    passed = passed.trim().replace(/^1+/, "");
+    const i = passed.indexOf("http");
+    if (i > 0) passed = passed.slice(i);
+
+    const m = passed.match(/[?&]key=([A-Z0-9]+)/i);
+    return m ? m[1] : null;
+  }
+
+  const key = extractKey();
+  if (!key) {
+    statusEl.textContent = "❌ Không tìm thấy key trong URL";
+    throw new Error("Missing key");
+  }
+
+  // =========================
+  // VERIFY KEY
+  // =========================
+  fetch(`${VERIFY_API}?key=${encodeURIComponent(key)}`)
+    .then(r => r.json())
+    .then(d => {
+      if (!d.ok) {
+        statusEl.textContent = "❌ " + (d.error || "Verify thất bại");
+        return;
+      }
+
+      statusEl.textContent = `✅ Key hợp lệ · còn ${d.time_left}s`;
+      keyBox.textContent = d.key;
+      keyBox.style.display = "block";
+      copyBtn.style.display = "block";
+    })
+    .catch(err => {
+      statusEl.textContent = "❌ Lỗi kết nối API";
+      console.error(err);
+    });
+
+  // =========================
+  // COPY
+  // =========================
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(keyBox.textContent);
+    copyBtn.textContent = "✅ Đã copy";
+    setTimeout(() => copyBtn.textContent = "📋 Copy key", 1200);
+  };
 </script>
 </body>
 </html>
