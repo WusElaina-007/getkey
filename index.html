@@ -2,66 +2,247 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>Get Key</title>
   <style>
-    body{font-family:system-ui;background:#0b1020;color:#fff;display:flex;min-height:100vh;align-items:center;justify-content:center}
-    .card{width:min(620px,92vw);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px}
-    .muted{opacity:.75}
-    .btn{padding:12px 14px;border-radius:14px;border:0;cursor:pointer;font-weight:800;background:#2b71ff;color:#fff}
-    .btn:disabled{opacity:.6;cursor:not-allowed}
-    .box{margin-top:14px;background:rgba(0,0,0,.25);padding:12px;border-radius:14px}
+    :root{
+      --bg1:#070a15; --bg2:#0b1633; --card:#0f1b36cc; --card2:#0b142bcc;
+      --text:#e8eefc; --muted:#a9b7d6; --accent:#3b82f6; --accent2:#22c55e; --danger:#ef4444;
+      --border:rgba(255,255,255,.10);
+      --shadow: 0 20px 60px rgba(0,0,0,.55);
+      --radius:20px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% 10%, #1e3a8a55 0%, transparent 60%),
+        radial-gradient(900px 600px at 90% 20%, #9333ea40 0%, transparent 55%),
+        radial-gradient(900px 700px at 40% 110%, #22c55e28 0%, transparent 60%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
+      display:flex; align-items:center; justify-content:center;
+      padding:18px;
+      overflow:hidden;
+    }
+    .noise{
+      position:fixed; inset:0; pointer-events:none; opacity:.05;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+      mix-blend-mode:overlay;
+    }
+    .wrap{width:min(780px, 100%); display:grid; gap:14px}
+    .brand{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:12px 2px;
+    }
+    .brand .title{
+      font-weight:800; letter-spacing:.3px; font-size:16px; opacity:.95;
+      display:flex; align-items:center; gap:10px;
+    }
+    .pill{
+      font-size:12px; color:var(--muted);
+      padding:6px 10px; border:1px solid var(--border); border-radius:999px;
+      background:rgba(0,0,0,.18);
+      backdrop-filter: blur(8px);
+    }
+    .card{
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .card::before{
+      content:"";
+      position:absolute; inset:-1px;
+      background: radial-gradient(600px 220px at 30% 0%, rgba(59,130,246,.18), transparent 55%),
+                  radial-gradient(700px 260px at 70% 10%, rgba(147,51,234,.12), transparent 60%);
+      pointer-events:none;
+    }
+    .inner{position:relative; padding:26px}
+    h1{margin:0 0 6px; font-size:26px; letter-spacing:.2px}
+    p{margin:0; color:var(--muted); line-height:1.55}
+    .row{display:flex; gap:12px; flex-wrap:wrap; margin-top:18px}
+    .btn{
+      appearance:none; border:0; cursor:pointer;
+      padding:12px 16px; border-radius:14px;
+      background: linear-gradient(180deg, rgba(59,130,246,1), rgba(37,99,235,1));
+      color:white; font-weight:800; letter-spacing:.2px;
+      display:inline-flex; align-items:center; gap:10px;
+      box-shadow: 0 14px 30px rgba(59,130,246,.25);
+      transition: transform .12s ease, filter .12s ease, opacity .12s ease;
+      user-select:none;
+    }
+    .btn:active{transform: translateY(1px) scale(.99)}
+    .btn:disabled{opacity:.55; cursor:not-allowed; filter:saturate(.7)}
+    .btn.secondary{
+      background: transparent;
+      border:1px solid var(--border);
+      color:var(--text);
+      box-shadow:none;
+    }
+    .status{
+      margin-top:16px;
+      padding:14px 14px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: rgba(0,0,0,.18);
+      color:var(--muted);
+      min-height:48px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:50%;
+      background: var(--accent2);
+      box-shadow: 0 0 18px rgba(34,197,94,.55);
+      flex:0 0 auto;
+    }
+    .dot.warn{background:#f59e0b; box-shadow:0 0 18px rgba(245,158,11,.45)}
+    .dot.bad{background:var(--danger); box-shadow:0 0 18px rgba(239,68,68,.45)}
+    .spinner{
+      width:16px; height:16px; border-radius:999px;
+      border:2px solid rgba(255,255,255,.25);
+      border-top-color: rgba(255,255,255,.9);
+      animation: spin 1s linear infinite;
+      display:none;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .hint{font-size:12px; color:rgba(169,183,214,.9); margin-top:10px}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+    .link{color:#93c5fd; text-decoration:none}
+    .link:hover{text-decoration:underline}
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>PHG GETKEY</h2>
-    <p class="muted">Bấm “Lấy key” → tự tạo link VượtNhanh → làm nhiệm vụ → quay lại hiện key.</p>
-
-    <button class="btn" id="get">🔑 Lấy key</button>
-
-    <div class="box" id="status">Sẵn sàng.</div>
+<div class="noise"></div>
+<div class="wrap">
+  <div class="brand">
+    <div class="title">🔐 HONGHAC. BUILDA <span class="pill">Key hệ thống (2h • 1 IP • 1 device)</span></div>
+    <div class="pill mono" id="envPill">ready</div>
   </div>
 
+  <div class="card">
+    <div class="inner">
+      <h1>Lấy key</h1>
+      <p>Bấm <b>Lấy key</b> → hệ thống tự tạo link <b>VượtNhanh</b> → làm nhiệm vụ → quay về trang <b>verify</b> để hiện key.</p>
+
+      <div class="row">
+        <button class="btn" id="btnGet">
+          <span>🔑</span>
+          <span>Lấy key</span>
+          <span class="spinner" id="sp"></span>
+        </button>
+        <button class="btn secondary" id="btnHelp">Hướng dẫn</button>
+      </div>
+
+      <div class="status" id="status">
+        <span class="dot" id="dot"></span>
+        <span id="statusText">Sẵn sàng.</span>
+      </div>
+
+      <div class="hint">
+        Nếu bị đưa về dạng <span class="mono">?passed=1https://...</span> thì trang này sẽ tự xử lý và chuyển tiếp đúng.
+      </div>
+    </div>
+  </div>
+
+  <div class="hint">
+    Worker: <span class="mono" id="workerBase">(chưa set)</span>
+  </div>
+</div>
+
 <script>
-  const WORKER_GO = "https://key-vuotnhanh-api.yeudaushope.workers.dev/go"; // sửa đúng worker của bạn
+  // ====== CONFIG (điền đúng Worker URL của bạn) ======
+  const WORKER_BASE = "https://key-vuotnhanh-api.yeudaushope.workers.dev"; // <-- đổi nếu khác
+  // ===================================================
 
-  const btn = document.getElementById("get");     // id nút lấy key
-  const st  = document.getElementById("status");  // id ô trạng thái
+  const $ = (id) => document.getElementById(id);
+  $("workerBase").textContent = WORKER_BASE;
+  $("envPill").textContent = new URL(WORKER_BASE).hostname;
 
-  // ✅ Khi VượtNhanh redirect về /?passed=...
-  (function autoRedirectFromPassed(){
-    const sp = new URLSearchParams(location.search);
-    let passed = sp.get("passed");
-    if (!passed) return;
+  function setStatus(text, type="ok") {
+    $("statusText").textContent = text;
+    const dot = $("dot");
+    dot.className = "dot" + (type==="warn" ? " warn" : type==="bad" ? " bad" : "");
+  }
 
-    // VượtNhanh đôi khi thêm "1" phía trước URL
-    // Ví dụ: passed=1https://site/verify.html?key=...
-    passed = passed.trim();
-    passed = passed.replace(/^1+/, ""); // bỏ các số 1 ở đầu
+  function normalizePassed(passed) {
+    if (!passed) return null;
+    // Có trường hợp passed=1https://... hoặc passed=https://...
+    const idx = passed.indexOf("http");
+    if (idx >= 0) return passed.slice(idx);
+    return passed;
+  }
 
-    // Nếu bị dính thêm ký tự lạ trước http, cắt về đúng đoạn http
-    const i = passed.indexOf("http");
-    if (i > 0) passed = passed.slice(i);
-
-    if (!passed.startsWith("http")) {
-      st && (st.textContent = "Lỗi passed: " + passed);
-      return;
+  // Auto handle ?passed=...
+  (function autoRedirectIfPassed(){
+    const url = new URL(location.href);
+    const passed = normalizePassed(url.searchParams.get("passed"));
+    if (passed) {
+      setStatus("Đang chuyển tiếp…", "warn");
+      setTimeout(() => location.replace(passed), 200);
     }
-
-    st && (st.textContent = "Đã vượt xong, đang chuyển hướng...");
-    // Chuyển qua verify để hiện key
-    location.replace(passed);
   })();
 
-  // Nút "Lấy key"
-  if (btn) {
-    btn.onclick = () => {
-      btn.disabled = true;
-      st && (st.textContent = "Đang tạo link vượt...");
-      location.href = WORKER_GO;
-    };
+  // Anti spam client-side
+  const COOLDOWN_MS = 12_000;
+  function cooldownLeft() {
+    const t = parseInt(localStorage.getItem("last_getkey") || "0", 10);
+    const left = COOLDOWN_MS - (Date.now() - t);
+    return Math.max(0, left);
   }
+
+  function lockButton(ms) {
+    const btn = $("btnGet");
+    btn.disabled = true;
+    const end = Date.now() + ms;
+    const timer = setInterval(() => {
+      const left = Math.max(0, end - Date.now());
+      if (left <= 0) {
+        clearInterval(timer);
+        btn.disabled = false;
+        btn.querySelector("span:nth-child(2)").textContent = "Lấy key";
+        setStatus("Sẵn sàng.", "ok");
+        return;
+      }
+      btn.querySelector("span:nth-child(2)").textContent = "Chờ " + Math.ceil(left/1000) + "s";
+    }, 250);
+  }
+
+  const initLeft = cooldownLeft();
+  if (initLeft > 0) lockButton(initLeft);
+
+  $("btnHelp").addEventListener("click", () => {
+    alert(
+`Cách dùng:
+1) Bấm "Lấy key"
+2) Hoàn thành VượtNhanh
+3) Nó sẽ về trang verify và hiện key
+4) Copy key dán vào tool Python để kích hoạt (key khóa 1 IP + 1 device).`
+    );
+  });
+
+  $("btnGet").addEventListener("click", async () => {
+    const left = cooldownLeft();
+    if (left > 0) return lockButton(left);
+
+    localStorage.setItem("last_getkey", String(Date.now()));
+    lockButton(COOLDOWN_MS);
+
+    $("sp").style.display = "inline-block";
+    setStatus("Đang tạo link VượtNhanh…", "warn");
+
+    // Chuyển thẳng sang Worker /go (Worker sẽ redirect sang VượtNhanh)
+    try {
+      location.href = WORKER_BASE.replace(/\/+$/, "") + "/go";
+    } catch (e) {
+      $("sp").style.display = "none";
+      setStatus("Lỗi: " + (e?.message || e), "bad");
+    }
+  });
 </script>
 </body>
 </html>
