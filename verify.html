@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Verify</title>
+  <style>
+    body{font-family:system-ui;background:#0b1020;color:#fff;display:flex;min-height:100vh;align-items:center;justify-content:center}
+    .card{width:min(620px,92vw);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px}
+    .muted{opacity:.75}
+    pre{white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,.25);padding:12px;border-radius:12px}
+    button{padding:10px 14px;border-radius:12px;border:0;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>THÀNH CÔNG</h2>
+    <p class="muted">Hệ thống đang kiểm tra key...</p>
+    <pre id="out">Loading...</pre>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button id="copy">Copy</button>
+      <button id="home">Về trang lấy key</button>
+    </div>
+  </div>
+
+<script>
+const WORKER_BASE = "https://key-vuotnhanh-api.yeudaushope.workers.dev"; // <-- sửa đúng worker
+const out = document.getElementById("out");
+
+document.getElementById("home").onclick = () => location.href = "./index.html";
+document.getElementById("copy").onclick = async () => {
+  try { await navigator.clipboard.writeText(out.textContent); alert("Đã copy!"); }
+  catch { alert("Không copy được, copy thủ công nhé."); }
+};
+
+(async () => {
+  const key = new URLSearchParams(location.search).get("key");
+  if (!key) { out.textContent = "Thiếu key trên URL."; return; }
+
+  const r = await fetch(`${WORKER_BASE}/api/verify?key=${encodeURIComponent(key)}`);
+  const j = await r.json();
+
+  if (!j.ok) { out.textContent = "Lỗi: " + j.error; return; }
+
+  out.textContent = `KEY CỦA BẠN:\n\n${j.key}\n\nCòn lại: ${Math.ceil(j.time_left/60)} phút`;
+})();
+</script>
+</body>
+</html>
