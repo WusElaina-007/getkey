@@ -1,105 +1,39 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<title>Get Key</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body{
-  margin:0;
-  height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  font-family:system-ui;
-  color:white;
-}
-.card{
-  width:280px;
-  padding:20px;
-  border-radius:16px;
-  background:rgba(255,255,255,.08);
-  backdrop-filter:blur(10px);
-  box-shadow:0 20px 40px rgba(0,0,0,.4);
-  text-align:center;
-}
-button{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  font-size:16px;
-  background:linear-gradient(135deg,#00f2fe,#4facfe);
-  color:black;
-  font-weight:700;
-}
-#keyBox{
-  margin-top:12px;
-  display:none;
-  background:black;
-  padding:10px;
-  border-radius:8px;
-  word-break:break-all;
-}
-small{opacity:.7}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Get Key</title>
+  <style>
+    body{font-family:system-ui;background:#0b1020;color:#fff;display:flex;min-height:100vh;align-items:center;justify-content:center}
+    .card{width:min(620px,92vw);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px}
+    .muted{opacity:.75}
+    .btn{padding:12px 14px;border-radius:14px;border:0;cursor:pointer;font-weight:800;background:#2b71ff;color:#fff}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .box{margin-top:14px;background:rgba(0,0,0,.25);padding:12px;border-radius:14px}
+  </style>
 </head>
-
 <body>
-<div class="card">
-  <h2>🔑 GET KEY</h2>
-  <small>Nhấn nút → vượt link → nhận key</small><br><br>
-  <button onclick="handle()">🚀 LẤY KEY</button>
-  <div id="keyBox"></div>
-</div>
+  <div class="card">
+    <h2>HONGHAC. BUILDA</h2>
+    <p class="muted">Bấm “Lấy key” → tự tạo link VượtNhanh → làm nhiệm vụ → quay lại hiện key.</p>
+
+    <button class="btn" id="get">🔑 Lấy key</button>
+
+    <div class="box" id="status">Sẵn sàng.</div>
+  </div>
 
 <script>
-/* ================== CẤU HÌNH ================== */
+  const WORKER_GO = "https://key-vuotnhanh-api.yeudaushope.workers.dev/go"; // <-- sửa đúng worker của bạn
+  const btn = document.getElementById("get");
+  const st = document.getElementById("status");
 
-// DÁN LINK GATE VUOTNHANH Ở ĐÂY (KHÔNG PHẢI /api)
-const VUOT_LINK = "https://vuotnhanh.com/XXXXX"; 
-
-// Firebase Firestore REST
-const PROJECT_ID = "key-tool-bb37b";
-const API_KEY = "AIzaSyDR73HZ6MyMF5GRgw3bx_c7vExGuGmzLs4";
-
-/* ============================================== */
-
-function qs(k){
-  return new URLSearchParams(location.search).get(k);
-}
-
-async function createKey(){
-  const key = crypto.randomUUID();
-
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/keys?key=${API_KEY}`;
-
-  await fetch(url,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      fields:{
-        key:{stringValue:key},
-        created:{timestampValue:new Date().toISOString()}
-      }
-    })
-  });
-
-  const box=document.getElementById("keyBox");
-  box.style.display="block";
-  box.textContent=key;
-  navigator.clipboard.writeText(key);
-}
-
-async function handle(){
-  if(qs("passed")!=="1"){
-    location.href = VUOT_LINK;
-    return;
-  }
-  await createKey();
-}
+  btn.onclick = () => {
+    btn.disabled = true;
+    st.textContent = "Đang tạo link vượt... (nếu đứng lâu >10s là VượtNhanh API đang lỗi)";
+    // Chuyển thẳng sang worker, worker tự redirect sang vuotnhanh
+    location.href = WORKER_GO;
+  };
 </script>
 </body>
 </html>
