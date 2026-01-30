@@ -24,16 +24,44 @@
   </div>
 
 <script>
-  const WORKER_GO = "https://key-vuotnhanh-api.yeudaushope.workers.dev/go"; // <-- sửa đúng worker của bạn
-  const btn = document.getElementById("get");
-  const st = document.getElementById("status");
+  const WORKER_GO = "https://key-vuotnhanh-api.yeudaushope.workers.dev/go"; // sửa đúng worker của bạn
 
-  btn.onclick = () => {
-    btn.disabled = true;
-    st.textContent = "Đang tạo link vượt... (nếu đứng lâu >10s là VượtNhanh API đang lỗi)";
-    // Chuyển thẳng sang worker, worker tự redirect sang vuotnhanh
-    location.href = WORKER_GO;
-  };
+  const btn = document.getElementById("get");     // id nút lấy key
+  const st  = document.getElementById("status");  // id ô trạng thái
+
+  // ✅ Khi VượtNhanh redirect về /?passed=...
+  (function autoRedirectFromPassed(){
+    const sp = new URLSearchParams(location.search);
+    let passed = sp.get("passed");
+    if (!passed) return;
+
+    // VượtNhanh đôi khi thêm "1" phía trước URL
+    // Ví dụ: passed=1https://site/verify.html?key=...
+    passed = passed.trim();
+    passed = passed.replace(/^1+/, ""); // bỏ các số 1 ở đầu
+
+    // Nếu bị dính thêm ký tự lạ trước http, cắt về đúng đoạn http
+    const i = passed.indexOf("http");
+    if (i > 0) passed = passed.slice(i);
+
+    if (!passed.startsWith("http")) {
+      st && (st.textContent = "Lỗi passed: " + passed);
+      return;
+    }
+
+    st && (st.textContent = "Đã vượt xong, đang chuyển hướng...");
+    // Chuyển qua verify để hiện key
+    location.replace(passed);
+  })();
+
+  // Nút "Lấy key"
+  if (btn) {
+    btn.onclick = () => {
+      btn.disabled = true;
+      st && (st.textContent = "Đang tạo link vượt...");
+      location.href = WORKER_GO;
+    };
+  }
 </script>
 </body>
 </html>
